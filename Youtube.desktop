@@ -1,0 +1,8 @@
+[Desktop Entry]
+Exec=python3 /home/rha/PycharmProjects/YouTube-Downloader/YouMain.py
+Icon= /home/rha/PycharmProjects/YouTube-Downloader/Youtube_logo.png
+Name[en_US]=YouTube
+Path=/home/rha/PycharmProjects/YouTube-Downloader
+StartupNotify=true
+Terminal=true
+Type=Application
