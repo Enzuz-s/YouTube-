@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import sys
 import time
 import traceback
 from os import system, name
@@ -21,6 +22,10 @@ def run():
         filename = f"{video_info['title']}.mp4"
         ydl_opts = {
             'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
+            'writesubtitles': True,  # Adds a subtitles file if it exists
+            'writeautomaticsub': True,  # Adds auto-generated subtitles file
+            'subtitle': '--write-sub --sub-lang en',  # writes subtitles file in english
+            'subtitlesformat': 'srt',  # writes the subtitles file in "srt" or "ass/srt/best"
             'download_archive': 'downloaded_songs.txt',
             'outtmpl': data + '/%(title)s.%(ext)s',
         }
@@ -35,8 +40,7 @@ def close():
     time.sleep(0)
     print('\nBye')
     time.sleep(1)
-    s.close()
-    exit()
+    sys.exit()
 
 
 def clear():
