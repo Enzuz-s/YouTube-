@@ -22,13 +22,9 @@ def run():
         filename = f"{video_info['title']}.mp4"
         ydl_opts = {
             'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
-            'writesubtitles': True,  # Adds a subtitles file if it exists
-            'subtitle': '--embed-subs --sub-lang en',  # writes subtitles file in english
             'download_archive': 'downloaded_songs.txt',
             'outtmpl': data + '/%(title)s.%(ext)s',
-            'postprocessors': [{
-                'key': 'FFmpegSubtitlesConvertor',
-                'format': 'srt',}],
+
         }
 
         with yb.YoutubeDL(ydl_opts) as ydl:
