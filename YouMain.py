@@ -5,7 +5,7 @@ import time
 import traceback
 from os import system, name
 
-import youtube_dl as yb
+import yt_dlp as yb
 
 with open("location.txt", 'w+t') as s:
     s.write(input("path to save files: "))
