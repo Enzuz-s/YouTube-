@@ -6,6 +6,10 @@ print(dir_locate)
 mp4_locate = input("the directory to the mp4 file location")
 print(mp4_locate)
 
+"""
+need to remove the os injection on line 20 and line 29
+"""
+
 
 def extractsub():
     """
