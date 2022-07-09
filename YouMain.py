@@ -7,6 +7,7 @@ from os import system, name
 
 import yt_dlp as yb
 
+
 with open("location.txt", 'w+t') as s:
     s.write(input("path to save files: "))
     s.seek(0)
@@ -18,13 +19,20 @@ def run():
         video_url = input("\nplease enter youtube video url: ")
         video_info = yb.YoutubeDL().extract_info(
             url=video_url, download=False)
+        filename = f"{video_info['title']}"
 
-        filename = f"{video_info['title']}.mp4"
         ydl_opts = {
             'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
             'download_archive': 'downloaded_songs.txt',
+            'windowsfilenames': True,
             'outtmpl': data + '/%(title)s.%(ext)s',
-
+            'writesubtitles': True,
+            'subtitleslangs': ['en', '-live_chat'],
+            'abort_on_unavailable_fragments': True,
+            'postprocessors': [{
+                'key': 'FFmpegMetadata',
+                'add_metadata': True,
+            }]
         }
 
         with yb.YoutubeDL(ydl_opts) as ydl:
@@ -67,7 +75,6 @@ def clear():
 
 
 if __name__ == '__main__':
-    # noinspection PyBroadException
     try:
         run()
     except KeyboardInterrupt:
