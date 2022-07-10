@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import os
+import shutil
 import sys
 import time
 import traceback
@@ -38,7 +40,20 @@ def run():
         with yb.YoutubeDL(ydl_opts) as ydl:
             ydl.download([video_info['webpage_url']])
             print("\nDownload complete... {}".format(filename))
+            sub_path()
             clear()
+
+
+def sub_path():
+    sourcepath = data
+    sourcefiles = os.listdir(sourcepath)
+    destinationpath = data + '/subtitles'
+    sub = os.path.exists(destinationpath)
+    if not sub:
+        os.makedirs(destinationpath)
+    for file in sourcefiles:
+        if file.endswith('.vtt'):
+            shutil.move(os.path.join(sourcepath, file), os.path.join(destinationpath, file))
 
 
 def close():
