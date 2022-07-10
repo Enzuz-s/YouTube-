@@ -14,6 +14,7 @@ with open("location.txt", 'w+t') as s:
     s.write(input("path to save files: "))
     s.seek(0)
     data = s.read()
+    print('subtitles if available will be saved to ' + data + '\subtitles')
 
 
 def run():
@@ -30,7 +31,8 @@ def run():
             'outtmpl': data + '/%(title)s.%(ext)s',
             'writesubtitles': True,
             'subtitleslangs': ['en', '-live_chat'],
-            'abort_on_unavailable_fragments': True,
+            'abort_on_unavailable_fragments': False,
+            'geo_bypass': True,
             'postprocessors': [{
                 'key': 'FFmpegMetadata',
                 'add_metadata': True,
