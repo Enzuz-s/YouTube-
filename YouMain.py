@@ -1,20 +1,19 @@
 from __future__ import unicode_literals
 
+from datetime import datetime
 import os
 import shutil
 import sys
 import time
 import traceback
 from os import system, name
-
 import yt_dlp as yb
-
 
 with open("location.txt", 'w+t') as s:
     s.write(input("path to save files: "))
     s.seek(0)
     data = s.read()
-    print('subtitles if available will be saved to ' + data + '\subtitles')
+    print("thumbnails will be moved to " + data + "\\thumbnail")
 
 
 def run():
@@ -31,31 +30,38 @@ def run():
             'outtmpl': data + '/%(title)s.%(ext)s',
             'writesubtitles': True,
             'subtitleslangs': ['en', '-live_chat'],
-            'abort_on_unavailable_fragments': False,
-            'geo_bypass': True,
-            'postprocessors': [{
-                'key': 'FFmpegMetadata',
-                'add_metadata': True,
-            }]
+            'writethumbnail': True,
+            'embedthumbnail': True,
+            'postprocessors': [
+                {'key': 'FFmpegMetadata',
+                 'add_metadata': True, },
+                {'key': 'FFmpegEmbedSubtitle'},
+                {'key': 'EmbedThumbnail',
+                 'already_have_thumbnail': True,
+                 },
+            ],
         }
 
         with yb.YoutubeDL(ydl_opts) as ydl:
             ydl.download([video_info['webpage_url']])
             print("\nDownload complete... {}".format(filename))
-            sub_path()
+            thumbnail_path()
             clear()
 
 
-def sub_path():
+def thumbnail_path():
+    start_time = datetime.now()
     sourcepath = data
     sourcefiles = os.listdir(sourcepath)
-    destinationpath = data + '/subtitles'
-    sub = os.path.exists(destinationpath)
-    if not sub:
+    destinationpath = data + '/thumbnail'
+    thumbnail = os.path.exists(destinationpath)
+    if not thumbnail:
         os.makedirs(destinationpath)
     for file in sourcefiles:
-        if file.endswith('.vtt'):
+        if file.endswith('.webp'):
             shutil.move(os.path.join(sourcepath, file), os.path.join(destinationpath, file))
+    end_time = datetime.now()
+    print('Duration: {}'.format(end_time - start_time))
 
 
 def close():
@@ -103,3 +109,4 @@ if __name__ == '__main__':
             traceback.print_exc(file=log)
             print('\nError is printed to log.txt')
             close()
+        pass
