@@ -8,7 +8,7 @@
 * Thumbnails will be moved to a different folder
 
 # To Skip Private video
-* you need to edit line 905 or 
+* you need to edit line 905 in YoutubeDL.py
 ``` python
 raise DownloadError(message, exc_info)
 to # raise DownloadError(message, exc_info)
