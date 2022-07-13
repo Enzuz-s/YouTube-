@@ -7,7 +7,8 @@ import sys
 import time
 import traceback
 from os import system, name
-import yt_dlp as yb
+import yt_dlp
+
 
 with open("location.txt", 'w+t') as s:
     s.write(input("path to save files: "))
@@ -19,10 +20,7 @@ with open("location.txt", 'w+t') as s:
 def run():
     while True:
         video_url = input("\nplease enter youtube video url: ")
-        video_info = yb.YoutubeDL().extract_info(
-            url=video_url, download=False)
-        filename = f"{video_info['title']}"
-
+        # noinspection SpellCheckingInspection
         ydl_opts = {
             'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
             'download_archive': 'downloaded_songs.txt',
@@ -32,6 +30,7 @@ def run():
             'subtitleslangs': ['en', '-live_chat'],
             'writethumbnail': True,
             'embedthumbnail': True,
+            'ignoreerrors': True,
             'postprocessors': [
                 {'key': 'FFmpegMetadata',
                  'add_metadata': True, },
@@ -42,24 +41,27 @@ def run():
             ],
         }
 
-        with yb.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([video_info['webpage_url']])
-            print("\nDownload complete... {}".format(filename))
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            error_code = ydl.download([video_url])
+            video_info = ydl.extract_info(url=video_url, download=False)
+            filename = f"{video_info['title']}"
+            print('Some videos failed to download {}'.format(filename) if error_code
+                  else "\nDownload complete... {}".format(filename))
             thumbnail_path()
             clear()
 
 
 def thumbnail_path():
     start_time = datetime.now()
-    sourcepath = data
-    sourcefiles = os.listdir(sourcepath)
-    destinationpath = data + '/thumbnail'
-    thumbnail = os.path.exists(destinationpath)
+    source_path = data
+    source_files = os.listdir(source_path)
+    destination_path = data + '/thumbnail'
+    thumbnail = os.path.exists(destination_path)
     if not thumbnail:
-        os.makedirs(destinationpath)
-    for file in sourcefiles:
+        os.makedirs(destination_path)
+    for file in source_files:
         if file.endswith('.webp'):
-            shutil.move(os.path.join(sourcepath, file), os.path.join(destinationpath, file))
+            shutil.move(os.path.join(source_path, file), os.path.join(destination_path, file))
     end_time = datetime.now()
     print('Duration: {}'.format(end_time - start_time))
 
