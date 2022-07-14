@@ -40,15 +40,21 @@ def run():
                  },
             ],
         }
-
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            error_code = ydl.download([video_url])
-            video_info = ydl.extract_info(url=video_url, download=False)
-            filename = f"{video_info['title']}"
-            print('Some videos failed to download {}'.format(filename) if error_code
-                  else "\nDownload complete... {}".format(filename))
-            thumbnail_path()
-            clear()
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                error_code = ydl.download([video_url])
+                video_info = ydl.extract_info(url=video_url, download=False)
+                filename = f"{video_info['title']}"
+                print('Some videos failed to download {}'.format(filename) if error_code
+                      else "\nDownload complete... {}".format(filename))
+                thumbnail_path()
+                clear()
+        except yt_dlp.utils.DownloadError:
+            print('Error. Moving to next URL.')
+            continue
+        except yt_dlp.utils.ExtractorError:
+            print('Error. Moving to next URL.')
+            continue
 
 
 def thumbnail_path():
