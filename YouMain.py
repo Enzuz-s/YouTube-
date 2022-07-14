@@ -10,7 +10,27 @@ from os import system, name
 import yt_dlp
 
 
+
+mystring = """
+MMMWNK00OOOkkkkkkkkkkkkkkkkkOOO0KKNWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNNNWMMMMMMMMMMMMMMMMMMM
+MW0dc:;,,,,,,,,,,,,,,,,,,,,,,,,,;;cd0WMMMXxdd0WMMXxdd0WMMMMMMMMMMMMMMMMMMMXxddddddddd0WMMMMMMMMMO:,c0MMMMMMMMMMMMMMMMMMM
+WO:,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,c0WMMXc..cXMWx..,OMMMMMMMMMMMMMMMMMMMMO;''.....',dNMMMMMMMMWx..'kMMMMMMMMMMMMMMMMMMM
+Nd,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,dNMMWk'.,OMXc..oNMMMMMMMMMMMMMMMMMMMMWXX0c..,kXXNMMMMMMMMMWx..'kMMMMMMMMMMMMMMMMMMM
+Xl,,,,,,,,,,,,,:ol;,,,,,,,,,,,,,,,,,,oXWMMXl..oNk'.;0WKxoloddkXMMXxdxKWNkddOWNo..;0WKxdxXMXxdxKWx..'dOdooOWMMW0dolod0NMM
+Kc,,,,,,,,,,,,,oXN0ko:,,,,,,,,,,,,,,,lKMMMMO,.;kl..dXk,..:;...:0Mk'..dW0;..lXNo..;0Wd..'kMO'..dNx...;c,..'xWNo..,:,..dNM
+0c,,,,,,,,,,,,,oXMMMWXOdc,,,,,,,,,,,,cKMMMMNo..;,.:K0;..lX0;...oNk'..dW0;..lNNo..;0Wd..'kMO'..dNx...dN0;..cXO'.'kWx..,0M
+0c,,,,,,,,,,,,,oXMMMMWXko;,,,,,,,,,,,c0WMMMM0;....xWk'..dWX:...:Xk'..dW0;..lNNo..;0Wd..'kMO'..dWx..'OMXc..:0d..,kWk'.'kM
+0c,,,,,,,,,,,,,oXWNKko:,,,,,,,,,,,,,,lKWMMMMNd...cXMk'..dWXc...:Kk'..dW0;..lNNo..;0Wd..'kMO'..dNx..'kMXc..:0d...;:,..'OM
+Kl,,,,,,,,,,,,,ckxl:,,,,,,,,,,,,,,,,,lXMMMMMMO'..dWMk'..dWXc...:Kk'..dW0;..lNNo..;0Wd..'kMO'..dNx..'kMXc..:0d..'okkkkOXM
+Xo,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,dNMMMMMMO,..dWMO,..oNK:...cXk'..dW0;..lNNo..;0Wd..'kMO'..dNx..'kMK:..cXx..,OMKocdXM
+Wk;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,:kWMMMMMMO,..dWMNl..,ol...'kW0,..;ol'..cNNo..;0Mk'..:dc'..dWx...:dc...dWK:..:dc..:KM
+MXx:,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,ckNMMMMMMMKl:cOWMMXxc;;;:clOWMWkc;;cxxc:xNWkc:oXMNx:,;cxdccOW0c:ldl;;:xNMWKd:;;;cdKWM
+MMWXOkxxdddooooooooooooooooodddxxkOXWMMMMMMMMMWWWWMMMMMWNNNWWWMMMMMWNNWMMWWWMMWWWWMMMMWNNWMMWWWMWWWWMWNNWMMMMMMWNNNWMMMM
+MMMMMMWMWWWWWWWWWWWWWWWWWWWWWWWMWWWWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+"""# noqa
+
 with open("location.txt", 'w+t') as s:
+    print(mystring)
     s.write(input("path to save files: "))
     s.seek(0)
     data = s.read()
@@ -30,7 +50,6 @@ def run():
             'subtitleslangs': ['en', '-live_chat'],
             'writethumbnail': True,
             'embedthumbnail': True,
-            'ignoreerrors': True,
             'postprocessors': [
                 {'key': 'FFmpegMetadata',
                  'add_metadata': True, },
