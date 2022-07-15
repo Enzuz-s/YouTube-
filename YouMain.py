@@ -13,12 +13,21 @@ import yt_dlp
 from ascii_ import ascii_banner, ascii_author
 
 
-with open("location.txt", 'w+t') as s:
-    print(ascii_banner)
-    s.write(input("path to save files: "))
-    s.seek(0)
-    data = s.read()
-    print("thumbnails will be moved to " + data + "\\thumbnail")
+def location():
+    while True:
+        try:
+            with open("location.txt", 'w+t') as s:
+                print(ascii_banner)
+                s.write(input("path to save files: "))
+                s.seek(0)
+                data = s.read()
+                print("thumbnails will be moved to " + data + "\\thumbnail")
+                run()
+                return data
+        except KeyboardInterrupt:
+            print('\nInterrupted')
+            while True:
+                clear2()
 
 
 def run():
@@ -29,7 +38,7 @@ def run():
             'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
             'download_archive': 'downloaded_songs.txt',
             'windowsfilenames': True,
-            'outtmpl': data + '/%(title)s.%(ext)s',
+            'outtmpl': location() + '/%(title)s.%(ext)s',
             'writesubtitles': True,
             'subtitleslangs': ['en', '-live_chat'],
             'writethumbnail': True,
@@ -62,9 +71,9 @@ def run():
 
 def thumbnail_path():
     start_time = datetime.now()
-    source_path = data
+    source_path = location()
     source_files = os.listdir(source_path)
-    destination_path = data + '/thumbnail'
+    destination_path = location() + '/thumbnail'
     thumbnail = os.path.exists(destination_path)
     if not thumbnail:
         os.makedirs(destination_path)
@@ -78,6 +87,7 @@ def thumbnail_path():
 def close():
     time.sleep(0)
     print('\nBye')
+    print(ascii_author)
     time.sleep(1)
     sys.exit()
 
@@ -105,13 +115,38 @@ def clear():
                 system('clear')
                 close()
         else:
-            print(ascii_author)
+            print("Please respond with 'Yes' or 'No'\n")
+
+
+def clear2():
+    while True:
+        ans = input("\nDo you want to start again? (y/n) ")
+        if ans.lower() == "y":
+            if name == "nt":
+                system('cls')
+                time.sleep(0)
+                location()
+
+            else:
+                system('clear')
+                time.sleep(0)
+                location()
+
+        elif ans.lower() == 'n':
+            if name == 'nt':
+                system('cls')
+                close()
+
+            else:
+                system('clear')
+                close()
+        else:
             print("Please respond with 'Yes' or 'No'\n")
 
 
 if __name__ == '__main__':
     try:
-        run()
+        location()
     except KeyboardInterrupt:
         print('\nInterrupted')
         while True:
