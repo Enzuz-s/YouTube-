@@ -27,7 +27,7 @@ def location():
         except KeyboardInterrupt:
             print('\nInterrupted')
             while True:
-                clear2()
+                clear()
 
 
 def run():
@@ -96,50 +96,14 @@ def clear():
     while True:
         ans = input("\nDo you want to start again? (y/n) ")
         if ans.lower() == "y":
-            if name == "nt":
-                system('cls')
-                time.sleep(0)
-                run()
-
-            else:
-                system('clear')
-                time.sleep(0)
-                run()
+            system('cls' if name == 'nt' else 'clear')
+            time.sleep(0)
+            location()
 
         elif ans.lower() == 'n':
-            if name == 'nt':
-                system('cls')
-                close()
+            system('cls' if name == 'nt' else 'clear')
+            close()
 
-            else:
-                system('clear')
-                close()
-        else:
-            print("Please respond with 'Yes' or 'No'\n")
-
-
-def clear2():
-    while True:
-        ans = input("\nDo you want to start again? (y/n) ")
-        if ans.lower() == "y":
-            if name == "nt":
-                system('cls')
-                time.sleep(0)
-                location()
-
-            else:
-                system('clear')
-                time.sleep(0)
-                location()
-
-        elif ans.lower() == 'n':
-            if name == 'nt':
-                system('cls')
-                close()
-
-            else:
-                system('clear')
-                close()
         else:
             print("Please respond with 'Yes' or 'No'\n")
 
@@ -156,4 +120,3 @@ if __name__ == '__main__':
             traceback.print_exc(file=log)
             print('\nError is printed to log.txt')
             close()
-        pass
