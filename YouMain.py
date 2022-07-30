@@ -10,14 +10,17 @@ from os import system, name
 
 import yt_dlp
 
-from ascii_ import ascii_banner, ascii_author
+
+def print_ascii(fn):
+    f = open(fn, 'r')
+    print(''.join([line for line in f]))
 
 
 def location():
     while True:
         try:
             with open("location.txt", 'w+t') as s:
-                print(ascii_banner)
+                print_ascii("YouTube-.txt")
                 s.write(input("path to save files: "))
                 s.seek(0)
                 data = s.read()
@@ -87,7 +90,7 @@ def thumbnail_path():
 def close():
     time.sleep(0)
     print('\nBye')
-    print(ascii_author)
+    print_ascii("Enhzuz-s.txt")
     time.sleep(1)
     sys.exit()
 
