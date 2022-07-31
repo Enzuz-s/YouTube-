@@ -11,26 +11,11 @@ from os import system, name
 import yt_dlp
 
 
-def print_ascii(fn):
-    f = open(fn, 'r')
-    print(''.join([line for line in f]))
-    time.sleep(0.05)
-
-
-def location():
-    while True:
-        try:
-            with open("location.txt", 'w+t') as s:
-                print_ascii("YouTube-.txt")
-                s.write(input("path to save files: "))
-                s.seek(0)
-                data = s.read()
-                print("thumbnails will be moved to " + data + "\\thumbnail")
-                run()
-                return data
-        except KeyboardInterrupt:
-            print('\nInterrupted')
-            clear()
+with open("location.txt", 'w+t') as s:
+    s.write(input("path to save files: "))
+    s.seek(0)
+    data = s.read()
+    print("thumbnails will be moved to " + data + "\\thumbnail")
 
 
 def run():
@@ -41,7 +26,7 @@ def run():
             'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
             'download_archive': 'downloaded_songs.txt',
             'windowsfilenames': True,
-            'outtmpl': location() + '/%(title)s.%(ext)s',
+            'outtmpl': data + '/%(title)s.%(ext)s',
             'writesubtitles': True,
             'subtitleslangs': ['en', '-live_chat'],
             'writethumbnail': True,
@@ -74,9 +59,9 @@ def run():
 
 def thumbnail_path():
     start_time = datetime.now()
-    source_path = location()
+    source_path = data
     source_files = os.listdir(source_path)
-    destination_path = location() + '/thumbnail'
+    destination_path = data + '/thumbnail'
     thumbnail = os.path.exists(destination_path)
     if not thumbnail:
         os.makedirs(destination_path)
@@ -90,7 +75,6 @@ def thumbnail_path():
 def close():
     time.sleep(0)
     print('\nBye')
-    print_ascii("Enhzuz-s.txt")
     time.sleep(1)
     sys.exit()
 
@@ -101,7 +85,7 @@ def clear():
         if ans.lower() == "y":
             system('cls' if name == 'nt' else 'clear')
             time.sleep(0)
-            location()
+            run()
 
         elif ans.lower() == 'n':
             system('cls' if name == 'nt' else 'clear')
@@ -113,7 +97,7 @@ def clear():
 
 if __name__ == '__main__':
     try:
-        location()
+        run()
     except KeyboardInterrupt:
         print('\nInterrupted')
         while True:
