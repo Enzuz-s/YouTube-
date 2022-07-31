@@ -14,6 +14,7 @@ import yt_dlp
 def print_ascii(fn):
     f = open(fn, 'r')
     print(''.join([line for line in f]))
+    time.sleep(0.05)
 
 
 def location():
@@ -29,8 +30,7 @@ def location():
                 return data
         except KeyboardInterrupt:
             print('\nInterrupted')
-            while True:
-                clear()
+            clear()
 
 
 def run():
