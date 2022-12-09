@@ -1,9 +1,11 @@
 import os
+import platform
 import shutil
 import sys
+import threading
 import time
 import traceback
-from os import system, name
+from os import system
 
 import yt_dlp
 
@@ -45,7 +47,6 @@ class YoutubeDL:
         except yt_dlp.utils.ExtractorError:
             print('Error. Moving to next URL.')
             return False
-        return True
 
 
 class FileManager:
@@ -53,24 +54,53 @@ class FileManager:
         self.data_path = data_path
 
     def move_thumbnail(self):
+
         source_path = self.data_path
         source_files = os.listdir(source_path)
         destination_path = self.data_path + '/thumbnail'
-        thumbnail = os.path.exists(destination_path)
-        if not thumbnail:
+        temp_path = self.data_path + '/temp'
+
+        # Hide the temp folder from the user
+        if platform.system() == 'Windows':
+            system('attrib +h ' + temp_path)
+        else:
+            system('chflags hidden ' + temp_path)
+
+        # Create the thumbnail and temp directories if they don't exist
+        if not os.path.exists(destination_path):
             os.makedirs(destination_path)
+        if not os.path.exists(temp_path):
+            os.makedirs(temp_path)
+
+        # Move the thumbnail files to the temp directory
         for file in source_files:
             if file.endswith('.webp'):
-                shutil.move(os.path.join(source_path, file), os.path.join(destination_path, file))
+                shutil.move(os.path.join(source_path, file), os.path.join(temp_path, file))
+
+        # Wait for all downloads to finish
+        while threading.active_count() > 0:
+            time.sleep(1)
+
+        # Move the files from the temp directory to the thumbnail directory
+        temp_files = os.listdir(temp_path)
+        for file in temp_files:
+            shutil.move(os.path.join(temp_path, file), os.path.join(destination_path, file))
 
 
 class InputHandler:
     @staticmethod
+    def clear_screen():
+        if platform.system() == 'Windows':
+            system('cls')
+        else:
+            system('clear')
+
+    @staticmethod
     def get_save_location():
-        with open("location.txt", 'w+t') as s:
-            s.write(input("path to save files: "))
-            s.seek(0)
-            data = s.read()
+        with open("location.txt", 'w+t') as save_location_file:
+            save_location_file.write(input("path to save files: "))
+            save_location_file.seek(0)
+            data = save_location_file.read()
             print("thumbnails will be moved to " + data + "\\thumbnail")
         return data
 
@@ -83,11 +113,11 @@ class InputHandler:
         while True:
             ans = input("\nDo you want to start again? (y/n) ")
             if ans.lower() == "y":
-                system('cls' if name == 'nt' else 'clear')
+                InputHandler.clear_screen()
                 time.sleep(0)
                 return True
             elif ans.lower() == 'n':
-                system('cls' if name == 'nt' else 'clear')
+                InputHandler.clear_screen()
                 return False
             else:
                 print("Please respond with 'Yes' or 'No'\n")
