@@ -8,13 +8,18 @@ import logging
 import yt_dlp
 
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler("logger.txt")
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 # File extensions to move to the "thumbnail" directory
 FILE_EXTENSIONS = ['.webp', '.png', 'jpg']
 
 # Prompt the user for the path to save files, and print a message indicating
 # where the thumbnails will be moved to
-with open("location.txt", 'w+t') as s:
+location = "location.txt"
+with open(location, 'w+t') as s:
     s.write(input("path to save files: "))
     s.seek(0)
     data = s.read()
@@ -37,6 +42,7 @@ def run():
             'subtitleslangs': ['en', '-live_chat'],
             'writethumbnail': True,
             'embedthumbnail': True,
+            "error_logger": logger,
             'postprocessors': [
                 {'key': 'FFmpegMetadata',
                  'add_metadata': True, },
@@ -91,6 +97,8 @@ def close():
     # Wait for one second before closing the program
     time.sleep(0)
     print('\nBye')
+    if os.path.exists(location):
+        os.remove(location)
     time.sleep(1)
     sys.exit()
 
@@ -116,6 +124,7 @@ def clear():
 
 # If the script is run directly (i.e. not imported as a module), run the main download process
 if __name__ == '__main__':
+    # noinspection PyBroadException
     try:
         # Start the download process
         run()
