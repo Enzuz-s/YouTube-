@@ -8,15 +8,23 @@ import traceback
 from os import system
 
 import yt_dlp
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class YoutubeDL:
+    # This class provides methods for downloading YouTube videos
     def __init__(self, video_url, data_path):
+        # Initialize the class with the URL of the YouTube video to download
+        # and the path where the downloaded video will be saved
         self.video_url = video_url
         self.data_path = data_path
+        # Set the options for youtube-dl
         self.ydl_opts = {
             'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
             'download_archive': 'downloaded_songs.txt',
+            'max_downloads': 8,
             'windowsfilenames': True,
             'outtmpl': data_path + '/%(title)s.%(ext)s',
             'writesubtitles': True,
@@ -34,31 +42,53 @@ class YoutubeDL:
         }
 
     def download(self):
+        url_error = 'Error. Moving to next URL.'
+        try:
+            # Create a new thread to download the video
+            thread = threading.Thread(target=self._download)
+            thread.start()
+        except yt_dlp.utils.DownloadError:
+            logger.error(url_error)
+            return False
+        except yt_dlp.utils.ExtractorError:
+            logger.error(url_error)
+            return False
+
+    def _download(self):
+        url_error = 'Error. Moving to next URL.'
         try:
             with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
                 error_code = ydl.download([self.video_url])
                 video_info = ydl.extract_info(url=self.video_url, download=False)
                 filename = f"{video_info['title']}"
-                print('Some videos failed to download {}'.format(filename) if error_code
-                      else "\nDownload complete... {}".format(filename))
+
+                if error_code:
+                    print('Some videos failed to download {}'.format(filename))
+                else:
+                    print("\nDownload complete... {}".format(filename))
         except yt_dlp.utils.DownloadError:
-            print('Error. Moving to next URL.')
+            logger.error(url_error)
             return False
         except yt_dlp.utils.ExtractorError:
-            print('Error. Moving to next URL.')
+            logger.error(url_error)
             return False
 
 
 class FileManager:
+    # This class provides methods for managing files
     def __init__(self, data_path):
         self.data_path = data_path
 
     def move_thumbnail(self):
+        # Wait for all threads to finish
+        for thread in threading.enumerate():
+            if thread != threading.current_thread():
+                thread.join()
 
         source_path = self.data_path
         source_files = os.listdir(source_path)
-        destination_path = self.data_path + '/thumbnail'
-        temp_path = self.data_path + '/temp'
+        destination_path = os.path.join(self.data_path, 'thumbnail')
+        temp_path = os.path.join(self.data_path, 'temp')
 
         # Hide the temp folder from the user
         if platform.system() == 'Windows':
@@ -85,6 +115,9 @@ class FileManager:
         temp_files = os.listdir(temp_path)
         for file in temp_files:
             shutil.move(os.path.join(temp_path, file), os.path.join(destination_path, file))
+
+        # Delete the temp directory
+        shutil.rmtree(temp_path)
 
 
 class InputHandler:
@@ -137,21 +170,22 @@ class Application:
             if not InputHandler.prompt_continue():
                 break
 
-    def close(self):
+    @staticmethod
+    def close():
         print('\nBye')
         time.sleep(1)
         sys.exit()
 
 
 if __name__ == '__main__':
+    # noinspection PyBroadException
     try:
-        app = Application()
-        app.run()
+        Application().run()
     except KeyboardInterrupt:
         print('\nInterrupted')
-        app.close()
+        Application().close()
     except Exception:
         with open("log.txt", "w") as log:
             traceback.print_exc(file=log)
             print('\nError is printed to log.txt')
-            app.close()
+            Application().close()
