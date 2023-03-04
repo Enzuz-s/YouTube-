@@ -7,6 +7,63 @@ from os import system, name
 import logging
 import yt_dlp
 
+
+import subprocess
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+logger = logging.getLogger(__name__)
+
+def check_package_updates():
+
+    logger.info("Checking for package updates...")
+
+    try:
+
+        with open(os.devnull, "w") as fnull:
+
+            packages = subprocess.check_output(["pip", "list", "--outdated"], stderr=fnull)
+
+    except Exception as e:
+
+        logger.error(f"Error checking for package updates: {str(e)}")
+
+        return
+
+    packages = packages.decode().split("\n")[2:-1]
+
+    logger.info(f"Found {len(packages)} packages with updates available:")
+
+    for package in packages:
+
+        package_name = package.split()[0]
+
+        package_version = package.split()[1]
+
+        logger.info(f"{package_name} ({package_version})")
+
+        update = input(f"Do you want to update {package_name}? (y/n)")
+
+        if update.lower() == 'y':
+
+            logger.info(f"Updating {package_name}...")
+
+            try:
+
+                subprocess.check_call(["pip", "install", "--upgrade", package_name])
+
+                logger.info(f"{package_name} updated successfully.")
+
+            except Exception as e:
+
+                logger.error(f"Error updating {package_name}: {str(e)}")
+
+        else:
+
+            logger.info(f"{package_name} update skipped.")
+
+
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 handler = logging.FileHandler("logger.txt")
