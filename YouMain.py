@@ -7,15 +7,25 @@ from os import system, name
 import logging
 import yt_dlp
 
-
 import subprocess
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 logger = logging.getLogger(__name__)
+# File extensions to move to the "thumbnail" directory
+FILE_EXTENSIONS = ['.webp', '.png', 'jpg']
+
+# Prompt the user for the path to save files, and print a message indicating
+# where the thumbnails will be moved to
+location = "location.txt"
+with open(location, 'w+t') as s:
+    s.write(input("path to save files: "))
+    s.seek(0)
+    data = s.read()
+    print("thumbnails will be moved to " + data + "\\thumbnail")
+
 
 def check_package_updates():
-
     logger.info("Checking for package updates...")
 
     try:
@@ -61,26 +71,6 @@ def check_package_updates():
         else:
 
             logger.info(f"{package_name} update skipped.")
-
-
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-handler = logging.FileHandler("logger.txt")
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-# File extensions to move to the "thumbnail" directory
-FILE_EXTENSIONS = ['.webp', '.png', 'jpg']
-
-# Prompt the user for the path to save files, and print a message indicating
-# where the thumbnails will be moved to
-location = "location.txt"
-with open(location, 'w+t') as s:
-    s.write(input("path to save files: "))
-    s.seek(0)
-    data = s.read()
-    print("thumbnails will be moved to " + data + "\\thumbnail")
 
 
 def run():
@@ -183,6 +173,7 @@ def clear():
 if __name__ == '__main__':
     # noinspection PyBroadException
     try:
+        check_package_updates()
         # Start the download process
         run()
     except KeyboardInterrupt:
