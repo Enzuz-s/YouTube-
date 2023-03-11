@@ -15,62 +15,36 @@ logger = logging.getLogger(__name__)
 # File extensions to move to the "thumbnail" directory
 FILE_EXTENSIONS = ['.webp', '.png', 'jpg']
 
-# Prompt the user for the path to save files, and print a message indicating
-# where the thumbnails will be moved to
-location = "location.txt"
-with open(location, 'w+t') as s:
-    s.write(input("path to save files: "))
-    s.seek(0)
-    data = s.read()
-    print("thumbnails will be moved to " + data + "\\thumbnail")
+
+class PackageUpdateError(Exception):
+    pass
 
 
 def check_package_updates():
-    logger.info("Checking for package updates...")
-
     try:
-
         with open(os.devnull, "w") as fnull:
-
             packages = subprocess.check_output(["pip", "list", "--outdated"], stderr=fnull)
-
-    except Exception as e:
-
-        logger.error(f"Error checking for package updates: {str(e)}")
-
-        return
+    except subprocess.CalledProcessError as e:
+        raise PackageUpdateError(f"Error checking outdated packages: {e}") from e
 
     packages = packages.decode().split("\n")[2:-1]
 
-    logger.info(f"Found {len(packages)} packages with updates available:")
-
-    for package in packages:
-
-        package_name = package.split()[0]
-
-        package_version = package.split()[1]
-
-        logger.info(f"{package_name} ({package_version})")
-
-        update = input(f"Do you want to update {package_name}? (y/n)")
-
-        if update.lower() == 'y':
-
-            logger.info(f"Updating {package_name}...")
-
-            try:
-
-                subprocess.check_call(["pip", "install", "--upgrade", package_name])
-
-                logger.info(f"{package_name} updated successfully.")
-
-            except Exception as e:
-
-                logger.error(f"Error updating {package_name}: {str(e)}")
-
-        else:
-
-            logger.info(f"{package_name} update skipped.")
+    if packages:
+        print("The following packages have updates available:")
+        for package in packages:
+            package_name = package.split()[0]
+            print(package_name)
+        answer = input("Do you want to update all packages? (y/n) ").lower()
+        if answer == 'y':
+            for package in packages:
+                package_name = package.split()[0]
+                try:
+                    subprocess.check_call(["pip", "install", "--upgrade", package_name], stdout=fnull, stderr=fnull)
+                    print(f"Successfully updated {package_name}")
+                except subprocess.CalledProcessError as e:
+                    raise PackageUpdateError(f"Error updating package {package_name}: {e}") from e
+    else:
+        print("All packages are up to date")
 
 
 def run():
@@ -144,8 +118,6 @@ def close():
     # Wait for one second before closing the program
     time.sleep(0)
     print('\nBye')
-    if os.path.exists(location):
-        os.remove(location)
     time.sleep(1)
     sys.exit()
 
@@ -174,6 +146,8 @@ if __name__ == '__main__':
     # noinspection PyBroadException
     try:
         check_package_updates()
+        data = (input("path to save files: "))
+        print("thumbnails will be moved to " + data + "\\thumbnail")
         # Start the download process
         run()
     except KeyboardInterrupt:
