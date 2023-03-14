@@ -58,7 +58,7 @@ def run():
             'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
             'download_archive': 'downloaded_songs.txt',
             'windowsfilenames': True,
-            'outtmpl': data + '/%(title)s.%(ext)s',
+            'outtmpl': sanitize + '/%(title)s.%(ext)s',
             'writesubtitles': True,
             'subtitleslangs': ['en', '-live_chat'],
             'writethumbnail': True,
@@ -97,9 +97,9 @@ def run():
 
 def thumbnail_path(file_extensions):
     # Set the source and destination paths for the thumbnails
-    source_path = data
+    source_path = sanitize
     source_files = os.listdir(source_path)
-    destination_path = data + '/thumbnail'
+    destination_path = sanitize + '/thumbnail'
 
     # Check if the "thumbnail" directory exists, and create it if it doesn't
     if not os.path.exists(destination_path):
