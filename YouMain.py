@@ -146,9 +146,26 @@ if __name__ == '__main__':
     # noinspection PyBroadException
     try:
         check_package_updates()
-        data = (input("path to save files: "))
-        print("thumbnails will be moved to " + data + "\\thumbnail")
-        # Start the download process
+
+        data = input("Enter file location to save files: ")
+        # Remove any trailing or leading white spaces
+        data = data.strip()
+        # Check the operating system and use the appropriate path separator
+        if os.name == 'nt':
+            data = data.replace("\\", "/")
+        else:
+            data = data.replace("\\", os.sep)
+        # Remove any non-alphanumeric characters except for a few allowed characters
+        data = ''.join(e for e in data if e.isalnum() or e in ['/', '_', '-', '.', ':'])
+        # Normalize the path to remove any redundant separators
+        sanitize = os.path.normpath(data)
+        # Check if the path exists and is a directory
+        if not os.path.isdir(sanitize):
+            print("Error: Invalid file location")
+        else:
+            # Print the sanitized input
+            print("Thumbnails will be moved to " + os.path.join(sanitize, "thumbnail"))
+
         run()
     except KeyboardInterrupt:
         # If the user interrupts the process (e.g. with Ctrl+C), log an error and ask if they want to try again
