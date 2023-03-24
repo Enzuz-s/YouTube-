@@ -143,28 +143,28 @@ def clear():
 
 # If the script is run directly (i.e. not imported as a module), run the main download process
 if __name__ == '__main__':
-    # noinspection PyBroadException
     try:
         check_package_updates()
 
-        data = input("Enter file location to save files: ")
-        # Remove any trailing or leading white spaces
-        data = data.strip()
-        # Check the operating system and use the appropriate path separator
-        if os.name == 'nt':
-            data = data.replace("\\", "/")
-        else:
-            data = data.replace("\\", os.sep)
-        # Remove any non-alphanumeric characters except for a few allowed characters
-        data = ''.join(e for e in data if e.isalnum() or e in ['/', '_', '-', '.', ':'])
-        # Normalize the path to remove any redundant separators
-        sanitize = os.path.normpath(data)
-        # Check if the path exists and is a directory
+        # Sanitize user input for file location
+        data = input("Enter file location to save files: ").strip()
+        sanitize = os.path.abspath(data)
+
+        # Check if the directory exists
         if not os.path.isdir(sanitize):
-            print("Error: Invalid file location")
-        else:
-            # Print the sanitized input
-            print("Thumbnails will be moved to " + os.path.join(sanitize, "thumbnail"))
+            print("Directory does not exist. Do you want to create it? (y/n)")
+            answer = input().lower()
+            if answer == 'y':
+                os.makedirs(sanitize)
+            else:
+                sys.exit()
+
+        # Start the download process
+        run()
+
+    except PackageUpdateError as e:
+        print(f"Error: {e}")
+
 
         run()
     except KeyboardInterrupt:
