@@ -1,13 +1,12 @@
+import logging
 import os
-import shutil
+import subprocess
 import sys
 import time
 import traceback
 from os import system, name
-import logging
-import yt_dlp
 
-import subprocess
+import yt_dlp
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -95,23 +94,22 @@ def run():
             return False
 
 
+def move_file(src_path, dest_path):
+    try:
+        os.rename(src_path, dest_path)
+        print(f"Moved file {src_path} to {dest_path}")
+    except OSError as e:
+        print(f"Error moving file {src_path} to {dest_path}: {e}")
+
+
 def thumbnail_path(file_extensions):
-    # Set the source and destination paths for the thumbnails
-    source_path = sanitize
-    source_files = os.listdir(source_path)
-    destination_path = sanitize + '/thumbnail'
-
-    # Check if the "thumbnail" directory exists, and create it if it doesn't
-    if not os.path.exists(destination_path):
-        os.makedirs(destination_path)
-
-    # Loop through the files in the source directory
-    for file in source_files:
-        # Loop through the specified file extensions
-        for extension in file_extensions:
-            # If the file has one of the specified extensions, move it to the destination directory
-            if file.endswith(extension):
-                shutil.move(os.path.join(source_path, file), os.path.join(destination_path, file))
+    thumbnail_dir = os.path.join(sanitize, 'thumbnail')
+    os.makedirs(thumbnail_dir, exist_ok=True)
+    for file in os.listdir(sanitize):
+        if os.path.splitext(file)[1] in file_extensions:
+            src_path = os.path.join(sanitize, file)
+            dest_path = os.path.join(thumbnail_dir, file)
+            move_file(src_path, dest_path)
 
 
 def close():
