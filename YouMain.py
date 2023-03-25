@@ -147,8 +147,9 @@ if __name__ == '__main__':
         check_package_updates()
 
         # Sanitize user input for file location
-        data = input("Enter file location to save files: ").strip()
-        sanitize = os.path.abspath(data)
+        user_input = input("Enter file location to save files: ")
+        user_input = user_input.strip()
+        sanitize = os.path.abspath(user_input)
 
         # Check if the directory exists
         if not os.path.isdir(sanitize):
