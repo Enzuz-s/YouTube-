@@ -77,31 +77,31 @@ def run():
                     print('Some videos failed to download ')
                 else:
                     print("\nDownload complete... ")
-                    move_with_thumbnail(sanitize, os.path.join(sanitize, "thumbnail"))
+                    move_with_thumbnail(sanitize, os.path.join(sanitize, "thumbnail"), FILE_EXTENSIONS)
                     clear()
         except yt_dlp.utils.DownloadError:
             logger.error(url_error)
             return False
 
 
-def move_with_thumbnail(dest, file_extensions):
+def move_with_thumbnail(source, dest, file_extensions):
     thumbnail_dir = os.path.join(os.getcwd(), "thumbnails")
     if not os.path.exists(thumbnail_dir):
         os.makedirs(thumbnail_dir)
 
-    for root, dirs, files in os.walk(os.getcwd()):
+    for root, dirs, files in os.walk(source):
         for file in files:
             if any(file.endswith(ext) for ext in file_extensions):
                 source_path = os.path.join(root, file)
                 thumbnail_name = re.sub(r'\.\w+$', '.' + file_extensions, file, count=1)
                 thumbnail_path = os.path.join(thumbnail_dir, thumbnail_name)
 
-                if os.path.realpath(source_path).startswith(os.path.realpath(os.getcwd())):
+                if os.path.realpath(source_path).startswith(os.path.realpath(source)):
                     with open(source_path, 'rb') as src, open(thumbnail_path, 'wb') as dst:
                         dst.write(src.read())
                     os.remove(source_path)
 
-    os.rename(os.getcwd(), dest)
+    os.rename(source, dest)
 
 
 def close():
