@@ -1,12 +1,13 @@
-import logging
 import os
-import subprocess
+import shutil
 import sys
 import time
 import traceback
 from os import system, name
-
+import logging
 import yt_dlp
+
+import subprocess
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -94,22 +95,23 @@ def run():
             return False
 
 
-def move_file(src_path, dest_path):
-    try:
-        os.rename(src_path, dest_path)
-        print(f"Moved file {src_path} to {dest_path}")
-    except OSError as e:
-        print(f"Error moving file {src_path} to {dest_path}: {e}")
-
-
 def thumbnail_path(file_extensions):
-    thumbnail_dir = os.path.join(sanitize, 'thumbnail')
-    os.makedirs(thumbnail_dir, exist_ok=True)
-    for file in os.listdir(sanitize):
-        if os.path.splitext(file)[1] in file_extensions:
-            src_path = os.path.join(sanitize, file)
-            dest_path = os.path.join(thumbnail_dir, file)
-            move_file(src_path, dest_path)
+    thumbnail_dir = os.path.join(os.getcwd(), "thumbnails")
+    if not os.path.exists(thumbnail_dir):
+        os.makedirs(thumbnail_dir)
+
+    for root, dirs, files in os.walk(os.getcwd()):
+        for file in files:
+            if any(file.endswith(ext) for ext in file_extensions):
+                source_path = os.path.join(root, file)
+                thumbnail_name = re.sub(r'\.\w+$', '.jpg', file, count=1)
+                thumbnail_path = os.path.join(thumbnail_dir, thumbnail_name)
+
+                # Check for path traversal exploits
+                if os.path.realpath(source_path).startswith(os.getcwd()):
+                    with open(source_path, 'rb') as src, open(thumbnail_path, 'wb') as dst:
+                        dst.write(src.read())
+                    os.remove(source_path)
 
 
 def close():
@@ -141,29 +143,25 @@ def clear():
 
 # If the script is run directly (i.e. not imported as a module), run the main download process
 if __name__ == '__main__':
+    # noinspection PyBroadException
     try:
         check_package_updates()
 
-        # Sanitize user input for file location
-        user_input = input("Enter file location to save files: ")
-        user_input = user_input.strip()
-        sanitize = os.path.abspath(user_input)
-
-        # Check if the directory exists
+        data = input("Enter file location to save files: ")
+        # Remove any trailing or leading white spaces
+        data = data.strip()
+        # Check the operating system and use the appropriate path separator
+        if os.name == 'nt':
+            data = data.replace("\\", "/")
+        else:
+            data = data.replace("\\", os.sep)
+        sanitize = os.path.normpath(data)
+        # Check if the path exists and is a directory
         if not os.path.isdir(sanitize):
-            print("Directory does not exist. Do you want to create it? (y/n)")
-            answer = input().lower()
-            if answer == 'y':
-                os.makedirs(sanitize)
-            else:
-                sys.exit()
-
-        # Start the download process
-        run()
-
-    except PackageUpdateError as e:
-        print(f"Error: {e}")
-
+            print("Error: Invalid file location")
+        else:
+            # Print the sanitized input
+            print("Thumbnails will be moved to " + os.path.join(sanitize, "thumbnail"))
 
         run()
     except KeyboardInterrupt:
