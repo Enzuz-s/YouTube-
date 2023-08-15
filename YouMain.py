@@ -1,7 +1,7 @@
 import logging
 import os
 import re
-import subprocess
+# import subprocess
 import sys
 import time
 from os import system, name
@@ -14,35 +14,35 @@ logger = logging.getLogger(__name__)
 FILE_EXTENSIONS = ['.webp', '.png', 'jpg']
 
 
-class PackageUpdateError(Exception):
-    pass
+# class PackageUpdateError(Exception):
+#    pass
 
 
-def check_package_updates():
-    try:
-        with open(os.devnull, "w") as fnull:
-            packages = subprocess.check_output(["pip", "list", "--outdated"], stderr=fnull)
-    except subprocess.CalledProcessError as ss:
-        raise PackageUpdateError(f"Error checking outdated packages: {ss}") from ss
-
-    packages = packages.decode().split("\n")[2:-1]
-
-    if packages:
-        print("The following packages have updates available:")
-        for package in packages:
-            package_name = package.split()[0]
-            print(package_name)
-        answer = input("Do you want to update all packages? (y/n) ").lower()
-        if answer == 'y':
-            for package in packages:
-                package_name = package.split()[0]
-                try:
-                    subprocess.check_call(["pip", "install", "--upgrade", package_name], stdout=fnull, stderr=fnull)
-                    print(f"Successfully updated {package_name}")
-                except subprocess.CalledProcessError as dd:
-                    raise PackageUpdateError(f"Error updating package {package_name}: {dd}") from dd
-    else:
-        print("All packages are up to date")
+# def check_package_updates():
+#    try:
+#        with open(os.devnull, "w") as fnull:
+#            packages = subprocess.check_output(["pip", "list", "--outdated"], stderr=fnull)
+#    except subprocess.CalledProcessError as ss:
+#        raise PackageUpdateError(f"Error checking outdated packages: {ss}") from ss
+#
+#    packages = packages.decode().split("\n")[2:-1]
+#
+#    if packages:
+#        print("The following packages have updates available:")
+#        for package in packages:
+#            package_name = package.split()[0]
+#            print(package_name)
+#        answer = input("Do you want to update all packages? (y/n) ").lower()
+#        if answer == 'y':
+#            for package in packages:
+#                package_name = package.split()[0]
+#                try:
+#                    subprocess.check_call(["pip", "install", "--upgrade", package_name], stdout=fnull, stderr=fnull)
+#                    print(f"{package_name} successfully upgraded")
+#                except subprocess.CalledProcessError as dd:
+#                    raise PackageUpdateError(f"Error updating package {package_name}: {dd}") from dd
+#    else:
+#        print("All packages are up to date")
 
 
 def run():
@@ -57,6 +57,7 @@ def run():
             'subtitleslangs': ['en', '-live_chat'],
             'writethumbnail': True,
             'embedthumbnail': True,
+            'ignoreerrors': True,
             "error_logger": logger,
             'postprocessors': [
                 {'key': 'FFmpegMetadata',
@@ -68,15 +69,15 @@ def run():
             ],
         }
 
-        url_error = 'Error. Moving to next URL.'
+        url_error = 'Error. Moving on to the next URL.'
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 error_code = ydl.download([video_url])
 
                 if error_code:
-                    print('Some videos failed to download ')
+                    print('Some videos could not be downloaded')
                 else:
-                    print("\nDownload complete... ")
+                    print("\nDownload completed... ")
                     move_with_thumbnail(sanitize, os.path.join(sanitize, "thumbnail"), FILE_EXTENSIONS)
                     clear()
         except yt_dlp.utils.DownloadError:
@@ -127,7 +128,7 @@ def clear():
 
 if __name__ == '__main__':
     try:
-        check_package_updates()
+        # check_package_updates()
 
         data = input("Enter file location to save files: ")
         data = data.strip()
