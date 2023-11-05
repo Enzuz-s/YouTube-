@@ -1,7 +1,6 @@
 import logging
 import os
 import re
-# import subprocess
 import sys
 import time
 from os import system, name
@@ -12,37 +11,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 logger = logging.getLogger(__name__)
 FILE_EXTENSIONS = ['.webp', '.png', 'jpg']
-
-
-# class PackageUpdateError(Exception):
-#    pass
-
-
-# def check_package_updates():
-#    try:
-#        with open(os.devnull, "w") as fnull:
-#            packages = subprocess.check_output(["pip", "list", "--outdated"], stderr=fnull)
-#    except subprocess.CalledProcessError as ss:
-#        raise PackageUpdateError(f"Error checking outdated packages: {ss}") from ss
-#
-#    packages = packages.decode().split("\n")[2:-1]
-#
-#    if packages:
-#        print("The following packages have updates available:")
-#        for package in packages:
-#            package_name = package.split()[0]
-#            print(package_name)
-#        answer = input("Do you want to update all packages? (y/n) ").lower()
-#        if answer == 'y':
-#            for package in packages:
-#                package_name = package.split()[0]
-#                try:
-#                    subprocess.check_call(["pip", "install", "--upgrade", package_name], stdout=fnull, stderr=fnull)
-#                    print(f"{package_name} successfully upgraded")
-#                except subprocess.CalledProcessError as dd:
-#                    raise PackageUpdateError(f"Error updating package {package_name}: {dd}") from dd
-#    else:
-#        print("All packages are up to date")
 
 
 def run():
