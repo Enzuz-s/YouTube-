@@ -1,4 +1,4 @@
 pip==23.3
 setuptools==68.0.0
 wheel==0.41.1
-yt-dlp==2023.9.24
+yt-dlp==2023.11.14
