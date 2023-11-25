@@ -7,7 +7,7 @@ from os import system, name
 
 import yt_dlp
 from yt_dlp.utils import DownloadError
-from term_col import Tcolors
+from Tcolors import Tcolors
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
