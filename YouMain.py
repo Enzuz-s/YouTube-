@@ -4,12 +4,21 @@ import shutil
 import sys
 import time
 from os import system, name
+
 import yt_dlp
 from yt_dlp.utils import DownloadError
+from term_col import Tcolors
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 logger = logging.getLogger(__name__)
+FILE_EXTENSIONS = ['.webp', '.png', 'jpg']
+
+start_info = [
+    f"{Tcolors.cyan}Youtube Downloader{Tcolors.clear}",
+    f"{Tcolors.gray}Written in Python 3.11*",
+    f"{Tcolors.red}By RhaZenZ0" + Tcolors.clear,
+]
 
 
 def download_video(video_url, file_location):
@@ -33,8 +42,8 @@ def download_video(video_url, file_location):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
             ydl.download([video_url])
-        except DownloadError as e:
-            logger.error(f"Error downloading video: {e}")
+        except DownloadError as error:
+            logger.error(f"Error downloading video: {error}")
 
 
 def move_thumbnails(source_folder, destination_folder):
@@ -49,13 +58,19 @@ def move_thumbnails(source_folder, destination_folder):
         time.sleep(1)
 
 
+def first_clear():
+    system('cls' if name == 'nt' else 'clear')
+    print("\n".join(start_info))
+    print(f"{Tcolors.bold}-----------" + Tcolors.clear)
+
+
 def clear_console():
     system('cls' if name == 'nt' else 'clear')
 
 
 def start_again(prev_file_location):
     while True:
-        ans = input("\nDo you want to start again? (y/n) ")
+        ans = input(f"{Tcolors.cyan}\nDo you want to start again? (y/n) " + Tcolors.clear)
         if ans.lower() == "y":
             clear_console()
             time.sleep(0)
@@ -64,7 +79,7 @@ def start_again(prev_file_location):
             clear_console()
             close()
         else:
-            print("Please respond with 'Y' or 'N'\n")
+            print(f"{Tcolors.red}Please respond with 'Y' or 'N'\n" + Tcolors.clear)
 
 
 def close():
@@ -77,12 +92,14 @@ def close():
 def run(prev_file_location=None):
     file_location_previous = prev_file_location
     while True:
-        video_url = input("\nPlease enter a YouTube video URL: ")
+        video_url = input(f"{Tcolors.cyan}\nPlease enter a YouTube video URL: " + Tcolors.clear)
 
         if not file_location_previous:
-            file_location = input("\nEnter file location to save files: ").strip()
+            file_location = input(f"{Tcolors.cyan}\nEnter file location to save files: " + Tcolors.clear).strip()
         else:
-            file_location = input(f"\nEnter file location to save files (default: {file_location_previous}): ").strip()
+            file_location = input(
+                f"{Tcolors.cyan}\nEnter file location to save files (default: {file_location_previous}): "
+                + Tcolors.clear).strip()
             if not file_location:
                 file_location = file_location_previous
 
@@ -92,7 +109,7 @@ def run(prev_file_location=None):
             file_location = file_location.replace("\\", os.sep)
         sanitized_location = os.path.normpath(file_location)
         if not os.path.isdir(sanitized_location):
-            print("Error: Invalid file location")
+            print(f"{Tcolors.red}Error: Invalid file location" + Tcolors.clear)
             continue
 
         download_video(video_url, sanitized_location)
@@ -103,7 +120,7 @@ def run(prev_file_location=None):
 
 if __name__ == '__main__':
     try:
-        clear_console()
+        first_clear()
         run()
     except KeyboardInterrupt:
         print('\nInterrupted')
