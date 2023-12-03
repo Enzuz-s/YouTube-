@@ -21,24 +21,21 @@ Author: RhaZenZ0
 import logging
 import os
 import shutil
+import subprocess
 import sys
 import time
 from os import system, name
 from typing import Dict
 
 import yt_dlp
-from yt_dlp.utils import DownloadError
-import progressbar
 
 from Tcolors import Tcolors
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 logger = logging.getLogger(__name__)
 FILE_EXTENSIONS = ('.webp', '.png', '.jpg', '.jpeg')
 DEFAULT_VIDEO_QUALITY = 'best'
 DEFAULT_AUDIO_FORMAT = 'best'
-DEFAULT_SUBTITLES = False
+DEFAULT_SUBTITLES = True
 
 start_info = [
     f"{Tcolors.cyan}Youtube Downloader{Tcolors.clear}",
@@ -49,8 +46,19 @@ start_info = [
 
 # Function to configure logging
 def configure_logging():
-    # Configures the logging settings
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    # Disable logging
+    logging.disable(logging.CRITICAL)
+    check_yt_dlp_availability()
+
+
+def check_yt_dlp_availability():
+    try:
+        subprocess.run(['yt-dlp', '--version'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("yt-dlp is installed and available.")
+    except FileNotFoundError:
+        print("yt-dlp is not installed")
+        time.sleep(5)
+        exit()
 
 
 # Function to get user options
@@ -67,7 +75,7 @@ def get_user_options() -> Dict[str, str]:
         'audio_format': input(
             f"Enter audio format (default: {DEFAULT_AUDIO_FORMAT}): ").strip() or DEFAULT_AUDIO_FORMAT,
         'subtitles': input(
-            f"Include subtitles? (y/n, default: y): ").strip().lower() == 'y' or DEFAULT_SUBTITLES
+            f"Include subtitles? (y/n, default: y ): ").strip().lower() == 'y' or DEFAULT_SUBTITLES
     }
     return options
 
@@ -90,6 +98,19 @@ def move_thumbnails(source_folder: str, destination_folder: str) -> None:
         shutil.move(source_path, destination_path)
         print(f"Moved {file} to {destination_folder}")
         time.sleep(1)
+
+
+def remove_ytdl_files(directory: str) -> None:
+    """
+    Removes files with the .ytdl extension from the specified directory.
+
+    Parameters:
+    - directory (str): The directory to remove .ytdl files from.
+    """
+    files_to_remove = [file for file in os.listdir(directory) if file.endswith('.ytdl')]
+    for file in files_to_remove:
+        file_path = os.path.join(directory, file)
+        os.remove(file_path)
 
 
 # Function to download video with options
@@ -120,43 +141,13 @@ def download_video_with_options(video_url: str, file_location: str, user_options
                 {'key': 'FFmpegEmbedSubtitle'},
                 {'key': 'EmbedThumbnail', 'already_have_thumbnail': True},
             ],
-            'progress_hooks': [display_progress_bar],
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([video_url])
 
-    except DownloadError as error:
+    except yt_dlp.utils.DownloadError as error:
         logger.error(f"Error downloading video: {error}")
-
-
-# Function to display a progress bar during the download process
-def display_progress_bar(progress_data: Dict[str, any]) -> None:
-    """
-    Displays a progress bar during the download process.
-
-    Parameters:
-    - progress_data (dict): Information about the download progress.
-    """
-    widgets = [
-        f' {Tcolors.bold}[{Tcolors.cyan}Downloading{Tcolors.clear}] ',
-        progressbar.Percentage(),
-        ' ',
-        progressbar.Bar(marker=progressbar.RotatingMarker()),
-        ' ',
-        progressbar.ETA(),
-    ]
-
-    if progress_data['status'] == 'downloading':
-        downloaded_bytes = progress_data['downloaded_bytes']
-        total_bytes = progress_data['total_bytes']
-        percentage = (downloaded_bytes / total_bytes) * 100
-
-        bar = progressbar.ProgressBar(widgets=widgets, max_value=total_bytes).start()
-        bar.update(downloaded_bytes)
-
-    elif progress_data['status'] == 'finished':
-        print("\nDownload completed!")
 
 
 # Function to clear the console
@@ -223,6 +214,7 @@ def run(prev_file_location: str = None) -> None:
 
         download_video_with_options(video_url, sanitized_location, get_user_options())
         move_thumbnails(sanitized_location, os.path.join(sanitized_location, 'thumbnails'))
+        remove_ytdl_files(sanitized_location)
         clear_console()
         start_again(sanitized_location)
 

@@ -3,3 +3,4 @@ setuptools==69.0.2
 wheel==0.42.0
 yt-dlp==2023.11.16
 progressbar~=2.5
+ffmpeg==1.4
