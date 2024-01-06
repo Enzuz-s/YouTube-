@@ -26,7 +26,7 @@ import subprocess
 import sys
 import time
 from os import system, name
-from typing import Dict
+from typing import Dict, Optional
 
 import yt_dlp
 
@@ -205,28 +205,27 @@ def close() -> None:
 
 
 # Function to run the program
-def run(prev_file_location: str = None) -> None:
+def run(prev_file_location: Optional[str] = None) -> None:
+
     file_location_previous = prev_file_location
+
     while True:
-        video_url = None
         try:
-            video_url = input(f"{Tcolors.cyan}\nPlease enter a YouTube video URL: " + Tcolors.clear).strip()
+            video_url = input(f"{Tcolors.cyan}\nPlease enter a YouTube video URL: {Tcolors.clear}").strip()
         except Exception as video_id:
             logger.error(f"An error occurred: {video_id}")
 
         if not file_location_previous:
-            file_location = input(f"{Tcolors.cyan}\nEnter file location to save files: " + Tcolors.clear).strip()
+            file_location_prompt = "Enter file location to save files: "
         else:
-            file_location = input(
-                f"{Tcolors.cyan}\nEnter file location to save files (default: {file_location_previous}): "
-                + Tcolors.clear).strip()
-            if not file_location:
-                file_location = file_location_previous
+            file_location_prompt = f"Enter file location to save files (default: {file_location_previous}): "
 
-        if os.name == 'nt':
-            file_location = file_location.replace("\\", "/")
-        else:
-            file_location = file_location.replace("\\", os.sep)
+        file_location = input(f"{Tcolors.cyan}{file_location_prompt}{Tcolors.clear}").strip()
+
+        if not file_location:
+            file_location = file_location_previous
+
+        file_location = file_location.replace("\\", "/") if os.name == 'nt' else file_location.replace("\\", os.sep)
         sanitized_location = sanitize_file_path(file_location)
 
         if not is_valid_url(video_url):
