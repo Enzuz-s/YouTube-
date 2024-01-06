@@ -20,6 +20,7 @@ Author: RhaZenZ0
 
 import logging
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -29,7 +30,17 @@ from typing import Dict
 
 import yt_dlp
 
-from Tcolors import Tcolors
+
+class Tcolors:
+    cyan = '\033[96m'
+    green = '\033[92m'
+    yellow = '\033[93m'
+    red = '\033[91m'
+    gray = '\033[90m'
+    clear = '\033[0m'
+    underline = '\033[4m'
+    bold = '\033[1m'
+
 
 logger = logging.getLogger(__name__)
 FILE_EXTENSIONS = ('.webp', '.png', '.jpg', '.jpeg')
@@ -37,14 +48,7 @@ DEFAULT_VIDEO_QUALITY = 'best'
 DEFAULT_AUDIO_FORMAT = 'best'
 DEFAULT_SUBTITLES = True
 
-start_info = [
-    f"{Tcolors.cyan}Youtube Downloader{Tcolors.clear}",
-    f"{Tcolors.gray}Written in Python 3.11*",
-    f"{Tcolors.red}By RhaZenZ0" + Tcolors.clear,
-]
 
-
-# Function to configure logging
 def configure_logging():
     # Disable logging
     logging.disable(logging.CRITICAL)
@@ -53,15 +57,29 @@ def configure_logging():
 
 def check_yt_dlp_availability():
     try:
-        subprocess.run(['yt-dlp', '--version'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(['yt-dlp', '--version'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
         print("yt-dlp is installed and available.")
-    except FileNotFoundError:
+    except subprocess.CalledProcessError:
         print("yt-dlp is not installed")
         time.sleep(5)
-        exit()
+        sys.exit()
 
 
-# Function to get user options
+def is_valid_url(url: str) -> bool:
+    # Basic YouTube URL validation
+    youtube_url_pattern = re.compile(r'^(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/.*$')
+    return bool(re.match(youtube_url_pattern, url))
+
+
+def is_valid_directory(directory: str) -> bool:
+    return os.path.isdir(directory)
+
+
+def sanitize_file_path(file_path: str) -> str:
+    # Use os.path.join for safe path concatenation
+    return os.path.normpath(file_path)
+
+
 def get_user_options() -> Dict[str, str]:
     """
     Gets user-specified options for video quality, audio format, and subtitles.
@@ -74,8 +92,7 @@ def get_user_options() -> Dict[str, str]:
             f"Enter video quality (default: {DEFAULT_VIDEO_QUALITY}): ").strip() or DEFAULT_VIDEO_QUALITY,
         'audio_format': input(
             f"Enter audio format (default: {DEFAULT_AUDIO_FORMAT}): ").strip() or DEFAULT_AUDIO_FORMAT,
-        'subtitles': input(
-            f"Include subtitles? (y/n, default: y ): ").strip().lower() == 'y' or DEFAULT_SUBTITLES
+        'subtitles': input("Include subtitles? (y/n, default: y): ").strip().lower() == 'y' or DEFAULT_SUBTITLES
     }
     return options
 
@@ -96,7 +113,7 @@ def move_thumbnails(source_folder: str, destination_folder: str) -> None:
         source_path = os.path.join(source_folder, file)
         destination_path = os.path.join(destination_folder, file)
         shutil.move(source_path, destination_path)
-        print(f"Moved {file} to {destination_folder}")
+        print(f"Thumbnail '{file}' moved to '{destination_folder}'")
         time.sleep(1)
 
 
@@ -148,6 +165,7 @@ def download_video_with_options(video_url: str, file_location: str, user_options
 
     except yt_dlp.utils.DownloadError as error:
         logger.error(f"Error downloading video: {error}")
+        print(f"{Tcolors.red}Error: {error}{Tcolors.clear}")
 
 
 # Function to clear the console
@@ -157,8 +175,10 @@ def clear_console() -> None:
 
 def first_clear():
     system('cls' if name == 'nt' else 'clear')
-    print("\n".join(start_info))
-    print(f"{Tcolors.bold}-----------" + Tcolors.clear)
+    print(f"{Tcolors.bold}YouTube Downloader{Tcolors.clear}")
+    print(f"{Tcolors.gray}Written in Python 3.11*")
+    print(f"{Tcolors.red}By RhaZenZ0{Tcolors.clear}")
+    print("-----------")
 
 
 # Function to start again
@@ -207,9 +227,14 @@ def run(prev_file_location: str = None) -> None:
             file_location = file_location.replace("\\", "/")
         else:
             file_location = file_location.replace("\\", os.sep)
-        sanitized_location = os.path.normpath(file_location)
-        if not os.path.isdir(sanitized_location):
-            print(f"{Tcolors.red}Error: Invalid file location" + Tcolors.clear)
+        sanitized_location = sanitize_file_path(file_location)
+
+        if not is_valid_url(video_url):
+            print(f"{Tcolors.red}Error: Invalid YouTube video URL{Tcolors.clear}")
+            continue
+
+        if not is_valid_directory(sanitized_location):
+            print(f"{Tcolors.red}Error: Invalid file location{Tcolors.clear}")
             continue
 
         download_video_with_options(video_url, sanitized_location, get_user_options())
@@ -231,8 +256,9 @@ if __name__ == '__main__':
 
     except (FileNotFoundError, PermissionError) as e:
         logger.error(f"Error occurred: {e}")
+        print(f"{Tcolors.red}Error: {e}{Tcolors.clear}")
         time.sleep(10)
         close()
-    except OSError:
-        print("Error: Unrecognized operating system")
+    except OSError as e:
+        print(f"{Tcolors.red}Error: {e}{Tcolors.clear}")
         sys.exit()
