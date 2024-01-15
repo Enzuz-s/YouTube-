@@ -146,6 +146,9 @@ def download_video_with_options(video_url: str, file_location: str, user_options
                       f'{user_options["video_quality"]}',
             'download_archive': 'downloaded_songs.txt',
             'windowsfilenames': True,
+            'quiet': True,
+            'no_warnings': True,
+            
             'outtmpl': os.path.join(file_location, '%(title)s.%(ext)s'),
             'writesubtitles': user_options['subtitles'],
             'subtitleslangs': ['en', '-live_chat'],
