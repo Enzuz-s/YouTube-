@@ -1,0 +1,235 @@
+"""
+YouTube Downloader Script
+
+This script allows users to download YouTube videos and organize them by moving associated thumbnails.
+
+Requirements:
+- Python 3.11 or later
+- yt_dlp library (install using: pip install yt-dlp)
+
+Usage:
+1. Run the script.
+2. Enter a valid YouTube video URL.
+3. Specify the file location to save downloaded files.
+4. Customize video quality, audio format, and subtitles (optional).
+5. The script will download the video, associated subtitles, and thumbnail.
+6. Thumbnails will be moved to a 'thumbnails' folder within the specified location.
+
+Author: RhaZenZ0
+"""
+
+import logging
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+from typing import Dict, Optional
+import yt_dlp
+import argparse
+
+
+class Tcolors:
+    cyan = '\033[96m'
+    green = '\033[92m'
+    yellow = '\033[93m'
+    red = '\033[91m'
+    gray = '\033[90m'
+    clear = '\033[0m'
+    underline = '\033[4m'
+    bold = '\033[1m'
+
+
+logger = logging.getLogger(__name__)
+FILE_EXTENSIONS = ('.webp', '.png', '.jpg', '.jpeg')
+DEFAULT_VIDEO_QUALITY = 'best'
+DEFAULT_AUDIO_FORMAT = 'best'
+DEFAULT_SUBTITLES = True
+
+
+def configure_logging(log_level=logging.INFO):
+    logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+    check_yt_dlp_availability()
+
+
+def check_yt_dlp_availability():
+    try:
+        subprocess.run(['yt-dlp', '--version'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+        logger.info("yt-dlp is installed and available.")
+    except subprocess.CalledProcessError:
+        logger.error("yt-dlp is not installed. Please install it using 'pip install yt-dlp'")
+        time.sleep(5)
+        sys.exit(1)
+
+
+def is_valid_url(url: str) -> bool:
+    youtube_url_pattern = re.compile(r'^(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/.*$')
+    return bool(re.match(youtube_url_pattern, url))
+
+
+def is_valid_directory(directory: str) -> bool:
+    return os.path.isdir(directory)
+
+
+def sanitize_file_path(file_path: str) -> str:
+    return os.path.normpath(file_path)
+
+
+def get_user_options() -> Dict[str, str]:
+    options = {
+        'video_quality': input(f"Enter video quality (default: {DEFAULT_VIDEO_QUALITY}): ").strip() or DEFAULT_VIDEO_QUALITY,
+        'audio_format': input(f"Enter audio format (default: {DEFAULT_AUDIO_FORMAT}): ").strip() or DEFAULT_AUDIO_FORMAT,
+        'subtitles': input("Include subtitles? (y/n, default: y): ").strip().lower() == 'y' or DEFAULT_SUBTITLES
+    }
+    return options
+
+
+def move_thumbnails(source_folder: str, destination_folder: str) -> None:
+    if not os.path.exists(destination_folder):
+        os.makedirs(destination_folder)
+    files_to_move = [file for file in os.listdir(source_folder) if file.endswith(FILE_EXTENSIONS)]
+    for file in files_to_move:
+        source_path = os.path.join(source_folder, file)
+        destination_path = os.path.join(destination_folder, file)
+        shutil.move(source_path, destination_path)
+        print(f"Thumbnail '{file}' moved to '{destination_folder}'")
+        time.sleep(1)
+
+
+def remove_ytdl_files(directory: str) -> None:
+    files_to_remove = [file for file in os.listdir(directory) if file.endswith('.ytdl')]
+    for file in files_to_remove:
+        file_path = os.path.join(directory, file)
+        os.remove(file_path)
+
+
+def download_video_with_options(video_url: str, file_location: str, user_options: Dict[str, str]) -> None:
+    def progress_hook(d):
+        if d['status'] == 'finished':
+            print(f"{Tcolors.green}Done downloading, now post-processing...{Tcolors.clear}")
+        elif d['status'] == 'downloading':
+            print(f"{Tcolors.cyan}Downloading: {d['_percent_str']} at {d['_speed_str']} ETA: {d['_eta_str']}{Tcolors.clear}", end='\r')
+
+    try:
+        ydl_opts = {
+            'format': f'bestvideo[ext=mp4]+bestaudio[ext={user_options["audio_format"]}]/bestvideo+bestaudio/{user_options["video_quality"]}',
+            'download_archive': 'downloaded_songs.txt',
+            'windowsfilenames': True,
+            'quiet': False,
+            'no_warnings': True,
+            'progress_hooks': [progress_hook],
+            'outtmpl': os.path.join(file_location, '%(title)s.%(ext)s'),
+            'writesubtitles': user_options['subtitles'],
+            'subtitleslangs': ['en', '-live_chat'],
+            'writethumbnail': True,
+            'embedthumbnail': True,
+            'ignoreerrors': True,
+            "error_logger": logger,
+            'postprocessors': [
+                {'key': 'FFmpegMetadata', 'add_metadata': True},
+                {'key': 'FFmpegEmbedSubtitle'},
+                {'key': 'EmbedThumbnail', 'already_have_thumbnail': True},
+            ],
+        }
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([video_url])
+
+    except yt_dlp.utils.DownloadError as error:
+        logger.error(f"Error downloading video: {error}")
+        print(f"{Tcolors.red}Error: {error}{Tcolors.clear}")
+
+
+def clear_console() -> None:
+    system('cls' if os.name == 'nt' else 'clear')
+
+
+def first_clear():
+    clear_console()
+    print(f"{Tcolors.bold}YouTube Downloader{Tcolors.clear}")
+    print(f"{Tcolors.gray}Written in Python 3.11*")
+    print(f"{Tcolors.red}By RhaZenZ0{Tcolors.clear}")
+    print("-----------")
+
+
+def start_again(prev_file_location: str) -> None:
+    while True:
+        ans = input(f"{Tcolors.cyan}\nDo you want to start again? (y/n) " + Tcolors.clear).strip().lower()
+        if ans == "y":
+            clear_console()
+            time.sleep(0)
+            run(prev_file_location)
+        elif ans == 'n':
+            clear_console()
+            close()
+        else:
+            print(f"{Tcolors.red}Please respond with 'Y' or 'N'\n" + Tcolors.clear)
+
+
+def close() -> None:
+    time.sleep(0)
+    print('\nBye')
+    time.sleep(1)
+    sys.exit()
+
+
+def run(prev_file_location: Optional[str] = None) -> None:
+    file_location_previous = prev_file_location
+
+    while True:
+        try:
+            video_url = input(f"{Tcolors.cyan}\nPlease enter a YouTube video URL: {Tcolors.clear}").strip()
+            if not is_valid_url(video_url):
+                print(f"{Tcolors.red}Error: Invalid YouTube video URL{Tcolors.clear}")
+                continue
+
+            file_location_prompt = f"Enter file location to save files (default: {file_location_previous}): " if file_location_previous else "Enter file location to save files: "
+            file_location = input(f"{Tcolors.cyan}{file_location_prompt}{Tcolors.clear}").strip() or file_location_previous
+            file_location = sanitize_file_path(file_location)
+
+            if not is_valid_directory(file_location):
+                print(f"{Tcolors.red}Error: Invalid file location{Tcolors.clear}")
+                continue
+
+            download_video_with_options(video_url, file_location, get_user_options())
+            move_thumbnails(file_location, os.path.join(file_location, 'thumbnails'))
+            remove_ytdl_files(file_location)
+            clear_console()
+            start_again(file_location)
+
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+            print(f"{Tcolors.red}Error: {e}{Tcolors.clear}")
+            continue
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="YouTube Downloader Script")
+    parser.add_argument('url', help="YouTube video URL")
+    parser.add_argument('location', help="File location to save downloaded files")
+    parser.add_argument('--video-quality', default=DEFAULT_VIDEO_QUALITY, help="Video quality (default: best)")
+    parser.add_argument('--audio-format', default=DEFAULT_AUDIO_FORMAT, help="Audio format (default: best)")
+    parser.add_argument('--subtitles', action='store_true', default=DEFAULT_SUBTITLES, help="Include subtitles (default: True)")
+    parser.add_argument('--log-level', default='INFO', help="Logging level (default: INFO)")
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = parse_args()
+    configure_logging(getattr(logging, args.log_level.upper(), None))
+    first_clear()
+
+    if is_valid_url(args.url) and is_valid_directory(args.location):
+        options = {
+            'video_quality': args.video_quality,
+            'audio_format': args.audio_format,
+            'subtitles': args.subtitles
+        }
+        download_video_with_options(args.url, args.location, options)
+        move_thumbnails(args.location, os.path.join(args.location, 'thumbnails'))
+        remove_ytdl_files(args.location)
+        start_again(args.location)
+    else:
+        print(f"{Tcolors.red}Error: Invalid URL or file location{Tcolors.clear}")
+        sys.exit(1)
