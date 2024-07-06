@@ -6,7 +6,8 @@ import subprocess
 import sys
 import time
 import yt_dlp
-from typing import Dict, Optional
+from typing import Dict, Optional, List
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class Tcolors:
@@ -124,6 +125,11 @@ class UserInputManager:
         }
         return options
 
+    @staticmethod
+    def get_video_urls() -> List[str]:
+        urls = input("Enter YouTube video URLs (comma-separated): ").strip().split(',')
+        return [url.strip() for url in urls if url.strip()]
+
 
 class ProgressDisplay:
     @staticmethod
@@ -171,9 +177,9 @@ class ConsoleManager:
 
         while True:
             try:
-                video_url = input(f"{Tcolors.cyan}\nPlease enter a YouTube video URL: {Tcolors.clear}").strip()
-                if not Validator.is_valid_url(video_url):
-                    print(f"{Tcolors.red}Error: Invalid YouTube video URL{Tcolors.clear}")
+                video_urls = UserInputManager.get_video_urls()
+                if not all(Validator.is_valid_url(url) for url in video_urls):
+                    print(f"{Tcolors.red}Error: One or more YouTube video URLs are invalid{Tcolors.clear}")
                     sys.exit(self.downloader.EXIT_INVALID_URL)
 
                 file_location_prompt = f"Enter file location to save files (default: {file_location_previous}): " if file_location_previous else "Enter file location to save files: "
@@ -190,7 +196,20 @@ class ConsoleManager:
                     self.downloader.DEFAULT_SUBTITLES
                 )
 
-                self.downloader.downloader.download_video_with_options(video_url, file_location, user_options, ProgressDisplay.progress_hook)
+                with ThreadPoolExecutor(max_workers=min(len(video_urls), 5)) as executor:
+                    futures = [
+                        executor.submit(
+                            self.downloader.downloader.download_video_with_options,
+                            url, file_location, user_options, ProgressDisplay.progress_hook
+                        ) for url in video_urls
+                    ]
+                    for future in as_completed(futures):
+                        try:
+                            future.result()
+                        except Exception as e:
+                            self.downloader.logger.error(f"Error during download: {e}")
+                            print(f"{Tcolors.red}Error: {e}{Tcolors.clear}")
+
                 FileManager.move_thumbnails(file_location, os.path.join(file_location, 'thumbnails'))
                 FileManager.remove_ytdl_files(file_location)
                 self.clear_console()
